@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stickyy.</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f5f0e8;--bg2:#efe8d6;--bg3:#e8dfc8;
+  --ink:#2a2318;--ink2:#8a7a65;--ink3:#c4b89a;
+  --gold:#c17f3a;--gold2:#e8a955;
+  --white:#fff;--danger:#c0392b;--success:#27ae60;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);max-width:420px;margin:0 auto;min-height:100vh}
+h1,h2,h3{font-family:'Playfair Display',serif;font-weight:400}
+input,select,textarea{font-family:'DM Sans',sans-serif;font-size:14px;background:var(--white);border:1px solid var(--ink3);border-radius:10px;padding:10px 14px;width:100%;color:var(--ink);outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+button{font-family:'DM Sans',sans-serif;cursor:pointer;border:none;border-radius:20px;font-size:13px;font-weight:500;transition:opacity .15s,transform .1s}
+button:active{transform:scale(.97)}
+
+/* NAV */
+.nav{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;position:sticky;top:0;background:var(--bg);z-index:50;border-bottom:0.5px solid var(--ink3)}
+.nav-logo{font-family:'Playfair Display',serif;font-size:22px;color:var(--ink);letter-spacing:-0.5px}
+.nav-logo em{font-style:italic;color:var(--gold)}
+.nav-right{display:flex;gap:10px;align-items:center}
+.cart-btn{background:var(--ink);color:var(--bg);padding:7px 16px;display:flex;align-items:center;gap:6px;font-size:12px}
+.cart-count{background:var(--gold);color:var(--white);border-radius:50%;width:18px;height:18px;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:500}
+.admin-link{font-size:11px;color:var(--ink2);text-decoration:none;letter-spacing:.08em;text-transform:uppercase;background:transparent;border:0.5px solid var(--ink3);padding:6px 12px;border-radius:20px}
+
+/* HERO */
+.hero{padding:24px 20px 0}
+.hero-sub{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink2);margin-bottom:6px}
+.hero-title{font-size:52px;line-height:1;letter-spacing:-2px;margin-bottom:20px}
+.hero-title em{color:var(--gold)}
+.hero-banner{width:calc(100% + 40px);margin-left:-20px;height:180px;background:var(--bg3);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.hero-banner-emojis{position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(3,1fr);opacity:.15}
+.hero-banner-emojis span{display:flex;align-items:center;justify-content:center;font-size:30px}
+.hero-tagline{position:relative;z-index:2;text-align:center}
+.hero-tagline p{font-family:'Playfair Display',serif;font-style:italic;font-size:18px;color:var(--ink);line-height:1.4}
+.hero-tagline span{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink2);margin-top:6px}
+
+/* FILTERS */
+.section-sep{display:flex;align-items:center;gap:10px;padding:22px 20px 14px}
+.section-sep .line{flex:1;height:.5px;background:var(--ink3)}
+.section-sep .lbl{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink2);white-space:nowrap}
+.filters{display:flex;gap:8px;padding:0 20px 18px;overflow-x:auto;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.pill{background:transparent;border:0.5px solid var(--ink3);padding:6px 16px;border-radius:20px;font-size:12px;color:var(--ink2);white-space:nowrap}
+.pill.active{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 20px}
+.card{background:var(--bg2);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .15s;position:relative}
+.card:active{transform:scale(.97)}
+.card-img{height:130px;display:flex;align-items:center;justify-content:center;font-size:52px;position:relative;overflow:hidden;background:var(--bg3)}
+.card-img img{width:100%;height:100%;object-fit:cover}
+.card-body{padding:10px 12px 12px}
+.card-name{font-size:13px;font-weight:500;margin-bottom:2px}
+.card-cat{font-size:10px;color:var(--ink2);text-transform:uppercase;letter-spacing:.08em}
+.card-price{font-family:'Playfair Display',serif;font-size:15px;color:var(--gold);margin-top:4px}
+.card-add{position:absolute;bottom:10px;right:10px;background:var(--gold);color:var(--white);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:none}
+.badge{position:absolute;top:8px;left:8px;background:var(--gold);color:var(--white);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:10px;z-index:3}
+.empty-msg{grid-column:span 2;text-align:center;padding:40px 20px;color:var(--ink2);font-size:14px}
+
+/* CART DRAWER */
+.drawer-overlay{display:none;position:fixed;inset:0;background:rgba(42,35,24,.45);z-index:200}
+.drawer-overlay.open{display:block}
+.drawer{display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:var(--bg);border-radius:24px 24px 0 0;padding:20px 20px 32px;z-index:201;max-height:85vh;overflow-y:auto}
+.drawer.open{display:block}
+.drawer-handle{width:40px;height:4px;background:var(--ink3);border-radius:4px;margin:0 auto 18px}
+.drawer-title{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:16px}
+.cart-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:.5px solid var(--ink3)}
+.cart-item-img{width:52px;height:52px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:26px;overflow:hidden;flex-shrink:0}
+.cart-item-img img{width:100%;height:100%;object-fit:cover}
+.cart-item-info{flex:1}
+.cart-item-name{font-size:13px;font-weight:500}
+.cart-item-price{font-size:12px;color:var(--gold)}
+.qty-ctrl{display:flex;align-items:center;gap:8px;margin-top:4px}
+.qty-btn{width:22px;height:22px;border-radius:50%;background:var(--bg3);border:none;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.qty-num{font-size:13px;font-weight:500;min-width:16px;text-align:center}
+.cart-remove{background:transparent;border:none;color:var(--ink2);font-size:18px;padding:4px}
+.cart-total{display:flex;justify-content:space-between;align-items:center;padding:16px 0 0}
+.cart-total-lbl{font-size:13px;color:var(--ink2)}
+.cart-total-val{font-family:'Playfair Display',serif;font-size:20px;color:var(--gold)}
+.cart-empty{text-align:center;padding:32px;color:var(--ink2);font-size:14px}
+.btn-primary{background:var(--ink);color:var(--bg);padding:14px;width:100%;border-radius:14px;font-size:14px;font-weight:500;margin-top:16px}
+.btn-gold{background:var(--gold);color:var(--white);padding:14px;width:100%;border-radius:14px;font-size:14px;font-weight:500;margin-top:10px}
+.btn-outline{background:transparent;color:var(--ink);border:1px solid var(--ink3);padding:12px;width:100%;border-radius:14px;font-size:13px;margin-top:8px}
+
+/* ORDER FORM */
+.order-summary-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}
+.order-summary-row.total{font-weight:500;border-top:.5px solid var(--ink3);margin-top:6px;padding-top:8px}
+.success-page{display:none;padding:40px 20px;text-align:center}
+.success-page.active{display:block}
+.success-icon{font-size:56px;margin-bottom:16px}
+.success-page h2{font-family:'Playfair Display',serif;font-size:28px;margin-bottom:8px}
+.success-page p{color:var(--ink2);font-size:14px;line-height:1.6}
+
+/* ADMIN LOGIN */
+.admin-page{display:none;padding:20px;min-height:80vh}
+.admin-page.active{display:block}
+.admin-login{max-width:340px;margin:60px auto 0;text-align:center}
+.admin-login h2{font-family:'Playfair Display',serif;font-size:30px;margin-bottom:6px}
+.admin-login p{color:var(--ink2);font-size:13px;margin-bottom:28px}
+.admin-login input{margin-bottom:12px;text-align:center;letter-spacing:.15em}
+.login-err{color:var(--danger);font-size:12px;margin-top:8px}
+
+/* ADMIN DASHBOARD */
+.admin-dash{display:none}
+.admin-dash.active{display:block}
+.admin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.admin-header h2{font-family:'Playfair Display',serif;font-size:24px}
+.admin-tabs{display:flex;gap:0;margin-bottom:20px;border:.5px solid var(--ink3);border-radius:12px;overflow:hidden}
+.admin-tab{flex:1;padding:10px;font-size:12px;font-weight:500;background:transparent;border:none;border-radius:0;color:var(--ink2);letter-spacing:.05em}
+.admin-tab.active{background:var(--ink);color:var(--bg)}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.stat-card{background:var(--bg2);border-radius:12px;padding:14px 16px}
+.stat-label{font-size:11px;color:var(--ink2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.stat-value{font-family:'Playfair Display',serif;font-size:26px;color:var(--ink)}
+.stat-value.gold{color:var(--gold)}
+.admin-section{display:none}
+.admin-section.active{display:block}
+
+/* ADMIN STICKERS */
+.admin-sticker-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:.5px solid var(--ink3)}
+.admin-sticker-thumb{width:44px;height:44px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;flex-shrink:0}
+.admin-sticker-thumb img{width:100%;height:100%;object-fit:cover}
+.admin-sticker-info{flex:1;min-width:0}
+.admin-sticker-name{font-size:13px;font-weight:500}
+.admin-sticker-meta{font-size:11px;color:var(--ink2)}
+.admin-sticker-actions{display:flex;gap:6px;flex-shrink:0}
+.btn-sm{padding:5px 10px;font-size:11px;border-radius:8px}
+.btn-danger{background:#fdecea;color:var(--danger);border:.5px solid #f5c6c6}
+.btn-edit{background:var(--bg3);color:var(--ink);border:.5px solid var(--ink3)}
+
+/* ADD STICKER FORM */
+.add-form{background:var(--bg2);border-radius:16px;padding:16px;margin-bottom:16px}
+.add-form h3{font-size:14px;font-weight:500;margin-bottom:14px}
+.add-form .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.img-preview{width:100%;height:100px;background:var(--bg3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:10px;overflow:hidden;cursor:pointer;border:1px dashed var(--ink3)}
+.img-preview img{width:100%;height:100%;object-fit:cover}
+.img-preview span{font-size:12px;color:var(--ink2)}
+
+/* ADMIN ORDERS */
+.order-card{background:var(--bg2);border-radius:14px;padding:14px 16px;margin-bottom:10px}
+.order-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.order-num{font-size:12px;color:var(--ink2)}
+.order-status{font-size:10px;padding:3px 10px;border-radius:10px;font-weight:500;text-transform:uppercase;letter-spacing:.08em}
+.status-pending{background:#fef3cd;color:#856404}
+.status-done{background:#d4edda;color:#155724}
+.order-customer{font-size:14px;font-weight:500;margin-bottom:2px}
+.order-phone{font-size:12px;color:var(--ink2);margin-bottom:8px}
+.order-items{font-size:12px;color:var(--ink2);line-height:1.6}
+.order-total{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold);margin-top:6px}
+.order-actions{display:flex;gap:8px;margin-top:10px}
+
+/* ADMIN CATS */
+.cat-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:.5px solid var(--ink3)}
+.cat-name{font-size:14px;font-weight:500}
+.cat-count{font-size:12px;color:var(--ink2)}
+
+/* FOOTER */
+.footer{background:var(--ink);color:var(--ink2);padding:24px 20px;text-align:center;margin-top:32px}
+.footer strong{display:block;font-family:'Playfair Display',serif;font-size:20px;color:var(--bg);font-weight:400;margin-bottom:4px}
+.footer em{display:block;font-style:italic;font-family:'Playfair Display',serif;font-size:12px;color:var(--ink3);margin-bottom:8px}
+
+/* PAGES */
+.page{display:none}
+.page.active{display:block}
+</style>
+</head>
+<body>
+
+<!-- MAIN SHOP PAGE -->
+<div id="page-shop" class="page active">
+
+  <nav class="nav">
+    <span class="nav-logo">Stick<em>yy.</em></span>
+    <div class="nav-right">
+      <button class="admin-link" onclick="showAdmin()">Admin</button>
+      <button class="cart-btn" onclick="openCart()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        Cart <span class="cart-count" id="cart-count">0</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <p class="hero-sub">The sticker magazine</p>
+    <h1 class="hero-title">Stick<em>yy.</em></h1>
+  </div>
+
+  <div class="hero-banner">
+    <div class="hero-banner-emojis">
+      <span>🌙</span><span>🌸</span><span>☕</span><span>🍂</span><span>✨</span>
+      <span>📷</span><span>🌿</span><span>🎞</span><span>🕯</span><span>🦋</span>
+      <span>🍃</span><span>🌾</span><span>🌙</span><span>🌸</span><span>☕</span>
+    </div>
+    <div class="hero-tagline">
+      <p>"Every surface is<br>a canvas."</p>
+      <span>New drops every week</span>
+    </div>
+  </div>
+
+  <div class="section-sep"><div class="line"></div><span class="lbl">Browse collection</span><div class="line"></div></div>
+
+  <div class="filters" id="filter-row"></div>
+
+  <div class="grid" id="sticker-grid"></div>
+
+  <div style="height:32px"></div>
+  <div class="footer">
+    <strong>Stickyy.</strong>
+    <em>stick it. mean it.</em>
+    DMs open · Ships on campus
+  </div>
+</div>
+
+<!-- ORDER FORM PAGE -->
+<div id="page-order" class="page">
+  <nav class="nav">
+    <button onclick="showPage('shop')" style="background:transparent;border:none;font-size:20px;color:var(--ink);padding:0">&#8592;</button>
+    <span class="nav-logo">Stick<em>yy.</em></span>
+    <div style="width:60px"></div>
+  </nav>
+  <div style="padding:24px 20px 48px">
+    <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:400;margin-bottom:4px">Your order</h1>
+    <p style="font-size:13px;color:var(--ink2);margin-bottom:24px">Fill in your details and we'll get it to you on campus.</p>
+
+    <div id="order-summary" style="background:var(--bg2);border-radius:14px;padding:14px 16px;margin-bottom:24px"></div>
+
+    <div style="margin-bottom:16px">
+      <label style="display:block;font-size:11px;color:var(--ink2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px">Your name</label>
+      <input type="text" id="o-name" placeholder="e.g. Yasmine" style="width:100%">
+    </div>
+
+    <div style="margin-bottom:16px;background:var(--bg2);border-radius:14px;padding:16px;border:1.5px solid var(--gold)">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.08 6.08l.97-.97a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span style="font-size:11px;color:var(--gold);font-weight:500;text-transform:uppercase;letter-spacing:.1em">Phone number</span>
+      </div>
+      <input type="tel" id="o-phone" placeholder="+216 XX XXX XXX" style="width:100%;font-size:16px;font-weight:500;background:var(--white);border:1px solid var(--ink3)">
+      <p style="font-size:11px;color:var(--ink2);margin-top:8px;line-height:1.5">We'll send you a confirmation message to arrange campus delivery.</p>
+    </div>
+
+    <div style="margin-bottom:20px">
+      <label style="display:block;font-size:11px;color:var(--ink2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px">Notes (optional)</label>
+      <textarea id="o-notes" rows="3" placeholder="Delivery spot, special requests..." style="width:100%;resize:none"></textarea>
+    </div>
+
+    <p id="order-err" style="color:var(--danger);font-size:12px;margin-bottom:10px;display:none">Please fill in your name and phone number.</p>
+    <button onclick="submitOrder()" style="background:var(--gold);color:var(--white);padding:15px;width:100%;border-radius:14px;font-size:14px;font-weight:500;margin-bottom:10px">Place order &#8594;</button>
+    <button onclick="showPage('shop')" style="background:transparent;color:var(--ink);border:1px solid var(--ink3);padding:13px;width:100%;border-radius:14px;font-size:13px">Back to catalog</button>
+  </div>
+</div>
+
+<!-- SUCCESS PAGE -->
+<div id="page-success" class="page">
+  <div class="success-page active">
+    <div class="success-icon">🎉</div>
+    <h2>Order placed!</h2>
+    <p>Thanks! We'll reach out on the number you provided to confirm and arrange delivery on campus.</p>
+    <button class="btn-primary" style="margin-top:28px" onclick="showPage('shop')">Back to catalog</button>
+  </div>
+</div>
+
+<!-- ADMIN PAGE -->
+<div id="page-admin" class="page">
+  <nav class="nav">
+    <button onclick="showPage('shop')" style="background:transparent;border:none;font-size:20px;color:var(--ink);padding:0">←</button>
+    <span class="nav-logo">Admin</span>
+    <button onclick="logoutAdmin()" style="background:transparent;border:.5px solid var(--ink3);color:var(--ink2);padding:6px 12px;border-radius:20px;font-size:11px">Logout</button>
+  </nav>
+
+  <!-- LOGIN -->
+  <div id="admin-login" class="admin-page active">
+    <div class="admin-login">
+      <h2>Welcome back</h2>
+      <p>Enter your admin password to continue</p>
+      <input type="password" id="pw-input" placeholder="Password" onkeydown="if(event.key==='Enter')tryLogin()">
+      <button class="btn-primary" onclick="tryLogin()">Enter dashboard →</button>
+      <p class="login-err" id="login-err" style="display:none">Incorrect password. Try again.</p>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="admin-dash" class="admin-dash" style="padding:0 20px 32px">
+
+    <div style="padding:16px 0 12px">
+      <h2 style="font-family:'Playfair Display',serif;font-size:24px">Dashboard</h2>
+    </div>
+
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchTab('stickers',this)">Stickers</button>
+      <button class="admin-tab" onclick="switchTab('orders',this)">Orders</button>
+      <button class="admin-tab" onclick="switchTab('categories',this)">Categories</button>
+    </div>
+
+    <!-- STICKERS TAB -->
+    <div id="tab-stickers" class="admin-section active">
+      <div class="add-form" id="add-sticker-form">
+        <h3 id="add-form-title">Add new sticker</h3>
+        <div class="img-preview" id="img-preview" onclick="document.getElementById('img-file').click()">
+          <span>+ Add image</span>
+        </div>
+        <input type="file" id="img-file" accept="image/*" style="display:none" onchange="previewImg(this)">
+        <div class="form-group" style="margin-bottom:10px">
+          <input type="text" id="s-name" placeholder="Sticker name">
+        </div>
+        <div class="row">
+          <div class="form-group" style="margin-bottom:10px">
+            <input type="number" id="s-price" placeholder="Price (TND)" step="0.1" min="0">
+          </div>
+          <div class="form-group" style="margin-bottom:10px">
+            <select id="s-cat"><option value="">Category</option></select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-gold" style="flex:1;padding:10px" onclick="saveSticker()">Save sticker</button>
+          <button class="btn-outline" style="padding:10px 16px;margin-top:0" onclick="cancelEdit()">Cancel</button>
+        </div>
+        <input type="hidden" id="edit-id" value="">
+      </div>
+      <div id="admin-sticker-list"></div>
+    </div>
+
+    <!-- ORDERS TAB -->
+    <div id="tab-orders" class="admin-section">
+      <div id="admin-order-list"></div>
+    </div>
+
+    <!-- CATEGORIES TAB -->
+    <div id="tab-categories" class="admin-section">
+      <div class="add-form" style="margin-bottom:20px">
+        <h3 style="margin-bottom:14px;font-size:14px;font-weight:500">Add new category</h3>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <input type="text" id="new-cat-input" placeholder="e.g. Vintage, Cute, Campus..." onkeydown="if(event.key==='Enter')addCategory()">
+          <button class="btn-gold" style="padding:12px;border-radius:12px;font-size:13px" onclick="addCategory()">+ Create category</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="flex:1;height:.5px;background:var(--ink3)"></div>
+        <span style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink2)">Your categories</span>
+        <div style="flex:1;height:.5px;background:var(--ink3)"></div>
+      </div>
+      <div id="admin-cat-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CART DRAWER -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeCart()"></div>
+<div class="drawer" id="cart-drawer">
+  <div class="drawer-handle"></div>
+  <h2 class="drawer-title">Your cart</h2>
+  <div id="cart-items"></div>
+  <div id="cart-footer"></div>
+</div>
+
+<script>
+const ADMIN_PASSWORD = 'stickyy2026';
+const STORAGE_KEY = 'stickyy_data';
+
+let db = {
+  stickers: [
+    {id:1, name:'Lunar Glow', price:1.5, category:'Dreamy', emoji:'🌙', img:'', badge:'New'},
+    {id:2, name:'Soft Fern', price:1.2, category:'Nature', emoji:'🌿', img:'', badge:''},
+    {id:3, name:'Late Latte', price:1.2, category:'Cozy', emoji:'☕', img:'', badge:'Hot'},
+    {id:4, name:'Film Reel', price:2.0, category:'Aesthetic', emoji:'🎞', img:'', badge:''},
+    {id:5, name:'Moonflower', price:1.5, category:'Dreamy', emoji:'🌸', img:'', badge:'New'},
+    {id:6, name:'Dark Wings', price:1.8, category:'Dark', emoji:'🦋', img:'', badge:''},
+  ],
+  categories: ['All','Dreamy','Nature','Cozy','Aesthetic','Dark'],
+  orders: [],
+  nextId: 7
+};
+let cart = [];
+let editingImgBase64 = '';
+let adminLoggedIn = false;
+let currentFilter = 'All';
+
+function loadData(){
+  try{
+    const s = localStorage.getItem(STORAGE_KEY);
+    if(s){ db = JSON.parse(s); if(!db.nextId) db.nextId=100; }
+  }catch(e){}
+}
+function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
+
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function showAdmin(){
+  showPage('admin');
+  if(adminLoggedIn){ showDash(); }
+}
+function tryLogin(){
+  const pw = document.getElementById('pw-input').value;
+  if(pw === ADMIN_PASSWORD){
+    adminLoggedIn = true;
+    document.getElementById('admin-login').classList.remove('active');
+    showDash();
+  } else {
+    document.getElementById('login-err').style.display='block';
+  }
+}
+function logoutAdmin(){
+  adminLoggedIn = false;
+  document.getElementById('admin-login').classList.add('active');
+  document.getElementById('admin-dash').classList.remove('active');
+  document.getElementById('pw-input').value='';
+  document.getElementById('login-err').style.display='none';
+  showPage('shop');
+}
+function showDash(){
+  document.getElementById('admin-login').classList.remove('active');
+  document.getElementById('admin-dash').classList.add('active');
+  renderStats();
+  renderAdminStickers();
+  renderAdminOrders();
+  renderAdminCats();
+  populateCatSelect();
+}
+function switchTab(name, btn){
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+function renderStats(){
+  const totalOrders = db.orders.length;
+  const pendingOrders = db.orders.filter(o=>o.status==='pending').length;
+  const revenue = db.orders.filter(o=>o.status==='done').reduce((s,o)=>s+o.total,0);
+  const totalStickers = db.stickers.length;
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total orders</div><div class="stat-value">${totalOrders}</div></div>
+    <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value" style="color:#856404">${pendingOrders}</div></div>
+    <div class="stat-card"><div class="stat-label">Revenue (done)</div><div class="stat-value gold">${revenue.toFixed(3)}</div></div>
+    <div class="stat-card"><div class="stat-label">Stickers</div><div class="stat-value">${totalStickers}</div></div>
+  `;
+}
+
+function renderShop(){
+  const cats = ['All', ...db.categories.filter(c=>c!=='All')];
+  const filterRow = document.getElementById('filter-row');
+  filterRow.innerHTML = cats.map(c=>`<button class="pill${c===currentFilter?' active':''}" onclick="filterBy('${c}')">${c}</button>`).join('');
+  const filtered = currentFilter==='All' ? db.stickers : db.stickers.filter(s=>s.category===currentFilter);
+  const grid = document.getElementById('sticker-grid');
+  if(!filtered.length){
+    grid.innerHTML='<div class="empty-msg">No stickers in this category yet.</div>';
+    return;
+  }
+  grid.innerHTML = filtered.map(s=>`
+    <div class="card" onclick="addToCart(${s.id})">
+      ${s.badge?`<div class="badge">${s.badge}</div>`:''}
+      <div class="card-img">
+        ${s.img?`<img src="${s.img}" alt="${s.name}">`:`<span style="font-size:52px">${s.emoji||'🌸'}</span>`}
+      </div>
+      <div class="card-body">
+        <div class="card-name">${s.name}</div>
+        <div class="card-cat">${s.category}</div>
+        <div class="card-price">${s.price.toFixed(3)} TND</div>
+      </div>
+      <button class="card-add" onclick="event.stopPropagation();addToCart(${s.id})">+</button>
+    </div>
+  `).join('');
+}
+function filterBy(cat){ currentFilter=cat; renderShop(); }
+
+function addToCart(id){
+  const sticker = db.stickers.find(s=>s.id===id);
+  if(!sticker) return;
+  const existing = cart.find(c=>c.id===id);
+  if(existing){ existing.qty++; } else { cart.push({...sticker, qty:1}); }
+  updateCartCount();
+  openCart();
+}
+function updateCartCount(){
+  const total = cart.reduce((s,c)=>s+c.qty,0);
+  document.getElementById('cart-count').textContent = total;
+}
+function openCart(){
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('cart-drawer').classList.add('open');
+  renderCart();
+}
+function closeCart(){
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('cart-drawer').classList.remove('open');
+}
+function renderCart(){
+  const el = document.getElementById('cart-items');
+  if(!cart.length){
+    el.innerHTML='<div class="cart-empty">Your cart is empty.<br>Go pick some stickers! 🌸</div>';
+    document.getElementById('cart-footer').innerHTML='';
+    return;
+  }
+  el.innerHTML = cart.map(c=>`
+    <div class="cart-item">
+      <div class="cart-item-img">
+        ${c.img?`<img src="${c.img}" alt="${c.name}">`:`<span style="font-size:26px">${c.emoji||'🌸'}</span>`}
+      </div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${c.name}</div>
+        <div class="cart-item-price">${(c.price*c.qty).toFixed(3)} TND</div>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="changeQty(${c.id},-1)">−</button>
+          <span class="qty-num">${c.qty}</span>
+          <button class="qty-btn" onclick="changeQty(${c.id},1)">+</button>
+        </div>
+      </div>
+      <button class="cart-remove" onclick="removeFromCart(${c.id})">×</button>
+    </div>
+  `).join('');
+  const total = cart.reduce((s,c)=>s+c.price*c.qty,0);
+  document.getElementById('cart-footer').innerHTML=`
+    <div class="cart-total">
+      <span class="cart-total-lbl">Total</span>
+      <span class="cart-total-val">${total.toFixed(3)} TND</span>
+    </div>
+    <button class="btn-gold" onclick="goToOrder()">Order now →</button>
+    <button class="btn-outline" onclick="closeCart()">Keep browsing</button>
+  `;
+}
+function changeQty(id, delta){
+  const item = cart.find(c=>c.id===id);
+  if(!item) return;
+  item.qty += delta;
+  if(item.qty<=0) cart = cart.filter(c=>c.id!==id);
+  updateCartCount();
+  renderCart();
+}
+function removeFromCart(id){
+  cart = cart.filter(c=>c.id!==id);
+  updateCartCount();
+  renderCart();
+}
+function goToOrder(){
+  if(!cart.length){ openCart(); return; }
+  closeCart();
+  const summary = document.getElementById('order-summary');
+  const total = cart.reduce((s,c)=>s+c.price*c.qty,0);
+  summary.innerHTML = cart.map(c=>`
+    <div class="order-summary-row"><span>${c.name} × ${c.qty}</span><span>${(c.price*c.qty).toFixed(3)} TND</span></div>
+  `).join('') + `<div class="order-summary-row total"><span>Total</span><span>${total.toFixed(3)} TND</span></div>`;
+  showPage('order');
+}
+function submitOrder(){
+  const name = document.getElementById('o-name').value.trim();
+  const phone = document.getElementById('o-phone').value.trim();
+  const notes = document.getElementById('o-notes').value.trim();
+  const err = document.getElementById('order-err');
+  if(!name || !phone){ err.style.display='block'; return; }
+  err.style.display='none';
+  const total = cart.reduce((s,c)=>s+c.price*c.qty,0);
+  const order = {
+    id: Date.now(),
+    name, phone, notes,
+    items: cart.map(c=>({name:c.name, qty:c.qty, price:c.price})),
+    total,
+    status:'pending',
+    date: new Date().toLocaleDateString('en-GB')
+  };
+  db.orders.unshift(order);
+  saveData();
+  cart = [];
+  updateCartCount();
+  document.getElementById('o-name').value='';
+  document.getElementById('o-phone').value='';
+  document.getElementById('o-notes').value='';
+  showPage('success');
+}
+
+function renderAdminStickers(){
+  const list = document.getElementById('admin-sticker-list');
+  if(!db.stickers.length){ list.innerHTML='<p style="color:var(--ink2);font-size:13px;padding:16px 0">No stickers yet. Add your first one above!</p>'; return; }
+  list.innerHTML = db.stickers.map(s=>`
+    <div class="admin-sticker-row">
+      <div class="admin-sticker-thumb">
+        ${s.img?`<img src="${s.img}" alt="${s.name}">`:`<span style="font-size:22px">${s.emoji||'🌸'}</span>`}
+      </div>
+      <div class="admin-sticker-info">
+        <div class="admin-sticker-name">${s.name}</div>
+        <div class="admin-sticker-meta">${s.category} · ${s.price.toFixed(3)} TND</div>
+      </div>
+      <div class="admin-sticker-actions">
+        <button class="btn-sm btn-edit" onclick="editSticker(${s.id})">Edit</button>
+        <button class="btn-sm btn-danger" onclick="deleteSticker(${s.id})">Del</button>
+      </div>
+    </div>
+  `).join('');
+}
+function previewImg(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    editingImgBase64 = e.target.result;
+    const prev = document.getElementById('img-preview');
+    prev.innerHTML = `<img src="${editingImgBase64}" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`;
+  };
+  reader.readAsDataURL(file);
+}
+function saveSticker(){
+  const name = document.getElementById('s-name').value.trim();
+  const price = parseFloat(document.getElementById('s-price').value);
+  const cat = document.getElementById('s-cat').value;
+  if(!name || isNaN(price)){ alert('Please fill in name and price.'); return; }
+  const editId = document.getElementById('edit-id').value;
+  if(editId){
+    const s = db.stickers.find(x=>x.id===parseInt(editId));
+    if(s){ s.name=name; s.price=price; s.category=cat||'General'; if(editingImgBase64) s.img=editingImgBase64; }
+  } else {
+    db.stickers.push({id:db.nextId++, name, price, category:cat||'General', emoji:'🌸', img:editingImgBase64, badge:''});
+  }
+  saveData();
+  cancelEdit();
+  renderAdminStickers();
+  renderStats();
+  renderShop();
+}
+function editSticker(id){
+  const s = db.stickers.find(x=>x.id===id);
+  if(!s) return;
+  document.getElementById('s-name').value = s.name;
+  document.getElementById('s-price').value = s.price;
+  document.getElementById('s-cat').value = s.category;
+  document.getElementById('edit-id').value = id;
+  document.getElementById('add-form-title').textContent = 'Edit sticker';
+  editingImgBase64 = s.img||'';
+  const prev = document.getElementById('img-preview');
+  if(s.img){ prev.innerHTML=`<img src="${s.img}" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`; }
+  else { prev.innerHTML=`<span style="font-size:40px">${s.emoji||'🌸'}</span>`; }
+  document.getElementById('add-sticker-form').scrollIntoView({behavior:'smooth'});
+}
+function cancelEdit(){
+  document.getElementById('s-name').value='';
+  document.getElementById('s-price').value='';
+  document.getElementById('s-cat').value='';
+  document.getElementById('edit-id').value='';
+  document.getElementById('add-form-title').textContent='Add new sticker';
+  editingImgBase64='';
+  document.getElementById('img-preview').innerHTML='<span style="font-size:12px;color:var(--ink2)">+ Add image</span>';
+  document.getElementById('img-file').value='';
+}
+function deleteSticker(id){
+  if(!confirm('Delete this sticker?')) return;
+  db.stickers = db.stickers.filter(s=>s.id!==id);
+  saveData();
+  renderAdminStickers();
+  renderStats();
+  renderShop();
+}
+
+function renderAdminOrders(){
+  const list = document.getElementById('admin-order-list');
+  if(!db.orders.length){ list.innerHTML='<p style="color:var(--ink2);font-size:13px;padding:16px 0">No orders yet.</p>'; return; }
+  list.innerHTML = db.orders.map(o=>`
+    <div class="order-card">
+      <div class="order-card-header">
+        <div>
+          <div class="order-num">#${o.id} · ${o.date}</div>
+          <div class="order-customer">${o.name}</div>
+          <div class="order-phone">📞 ${o.phone}</div>
+        </div>
+        <span class="order-status ${o.status==='done'?'status-done':'status-pending'}">${o.status}</span>
+      </div>
+      <div class="order-items">${o.items.map(i=>`${i.name} × ${i.qty}`).join(', ')}</div>
+      ${o.notes?`<div style="font-size:12px;color:var(--ink2);margin-top:4px;font-style:italic">"${o.notes}"</div>`:''}
+      <div class="order-total">${o.total.toFixed(3)} TND</div>
+      <div class="order-actions">
+        ${o.status==='pending'?`<button class="btn-sm btn-edit" onclick="markDone(${o.id})" style="background:#d4edda;color:#155724;border-color:#b8ddc8">Mark as done</button>`:''}
+        <button class="btn-sm btn-danger" onclick="deleteOrder(${o.id})">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+function markDone(id){
+  const o = db.orders.find(x=>x.id===id);
+  if(o){ o.status='done'; saveData(); renderAdminOrders(); renderStats(); }
+}
+function deleteOrder(id){
+  if(!confirm('Delete this order?')) return;
+  db.orders = db.orders.filter(o=>o.id!==id);
+  saveData();
+  renderAdminOrders();
+  renderStats();
+}
+
+function renderAdminCats(){
+  const list = document.getElementById('admin-cat-list');
+  const cats = db.categories.filter(c=>c!=='All');
+  if(!cats.length){
+    list.innerHTML=`<div style="text-align:center;padding:32px 20px;color:var(--ink2)">
+      <div style="font-size:32px;margin-bottom:10px">🗂️</div>
+      <p style="font-size:14px;font-weight:500;margin-bottom:4px">No categories yet</p>
+      <p style="font-size:12px">Type a name above and hit "Create category"</p>
+    </div>`;
+    return;
+  }
+  list.innerHTML = cats.map(c=>{
+    const count = db.stickers.filter(s=>s.category===c).length;
+    return `<div class="cat-row" style="background:var(--bg2);border-radius:12px;padding:12px 14px;margin-bottom:8px;border:none;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:36px;height:36px;background:var(--bg3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">🏷️</div>
+        <div>
+          <div class="cat-name" style="font-size:14px;font-weight:500">${c}</div>
+          <div class="cat-count" style="font-size:11px;color:var(--ink2)">${count} sticker${count!==1?'s':''}</div>
+        </div>
+      </div>
+      <button class="btn-sm btn-danger" onclick="deleteCat('${c}')">Remove</button>
+    </div>`;
+  }).join('');
+}
+function addCategory(){
+  const input = document.getElementById('new-cat-input');
+  const name = input.value.trim();
+  if(!name) return;
+  if(db.categories.includes(name)){ alert('Category already exists.'); return; }
+  db.categories.push(name);
+  saveData();
+  input.value='';
+  renderAdminCats();
+  populateCatSelect();
+  renderShop();
+}
+function deleteCat(name){
+  if(!confirm(`Remove category "${name}"? Stickers in it won't be deleted.`)) return;
+  db.categories = db.categories.filter(c=>c!==name);
+  saveData();
+  renderAdminCats();
+  populateCatSelect();
+  renderShop();
+}
+function populateCatSelect(){
+  const sel = document.getElementById('s-cat');
+  const cats = db.categories.filter(c=>c!=='All');
+  sel.innerHTML = '<option value="">Category</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+}
+
+loadData();
+renderShop();
+</script>
+</body>
+</html>
